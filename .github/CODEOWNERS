@@ -1,4 +1,3 @@
 *.js @creamy-dev
 *.json @creamy-dev
-.gitignore @virtualout
-.github @virtualout
+.git* @virtualout
