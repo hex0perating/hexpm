@@ -1,3 +1,5 @@
+const axios = require("axios");
+
 let argv = process.argv.slice(2);
 
 let args = {
@@ -18,6 +20,9 @@ let args = {
         "description": "Search for a package name",
         "optDesc": "Since 'world' is NOT a package, it is blacklisted to prevent accidental use, and/or potential bugs."
     },
+    /**
+     * shows the help message
+     */
     "showHelp": function() {
         console.log("Usage: ");
 
@@ -37,6 +42,12 @@ let args = {
     }
 }
 
+/**
+ * gets options from the command line
+ * @param {string} index index of args to search for
+ * @param {boolean} disableException whether to disable an exception on not finding the index
+ * @returns {string} the value of the index, if disableException is true, it will return undefined
+ */
 function parseOpts(index, disableException) {
     let arg = argv[index];
 
@@ -53,8 +64,25 @@ function parseOpts(index, disableException) {
     }
 }
 
-if (argv.length == 0 || parseOpts(0, true) == "help") {
-    args.showHelp();
-
-    process.exit(1);
+async function main() {
+    if (argv.length == 0 || parseOpts(0, true) == "help") {
+        args.showHelp();
+    
+        process.exit(1);
+    } else if (parseOpts(0, true) == "install") {
+        if (argv[1] == undefined) {
+            console.log("No package name provided.");
+            args.showHelp();
+            process.exit(1);
+        } else {
+            let package = argv[1];
+    
+            if (package == "world") {
+                const installer = require("./makeWorld.js");
+                await installer();
+            }
+        }
+    }
 }
+
+main();
