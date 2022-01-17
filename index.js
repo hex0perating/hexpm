@@ -82,6 +82,10 @@ async function main() {
                 await installer();
             }
         }
+    } else {
+        console.log("Unknown argument: " + argv[0]);
+        args.showHelp();
+        process.exit(1);
     }
 }
 
