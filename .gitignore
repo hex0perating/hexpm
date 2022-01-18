@@ -109,3 +109,6 @@ dist
 
 # Ignore my notes files for Arch Install, etc. - creamy-dev
 NOTES.md
+
+# Hexpm build
+hexpm

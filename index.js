@@ -1,6 +1,9 @@
-const axios = require("axios");
+import axios from "https://deno.land/x/axiod/mod.ts";
+import {parse} from "https://deno.land/std@0.83.0/flags/mod.ts";
 
-let argv = process.argv.slice(2);
+import installer from "./makeWorld.js";
+
+let argv = Deno.args;
 
 let args = {
     "help": {
@@ -23,21 +26,22 @@ let args = {
     /**
      * shows the help message
      */
-    "showHelp": function() {
+    "showHelp": async function() {
         console.log("Usage: ");
 
         for (let arg_name in args) {
+            let lazy = "";
             let arg = args[arg_name];
     
             if (typeof arg == "function") break;
     
-            process.stdout.write("  " + arg.long + " (" + arg.short + ") - " + arg.description);
+            lazy += "  " + arg.long + " (" + arg.short + ") - " + arg.description;
     
             if (arg.optDesc) {
-                process.stdout.write("\n   " + arg.optDesc.replaceAll("\n", "\n   "));
+                lazy += "\n   " + arg.optDesc.replaceAll("\n", "\n   ");
             }
-    
-            process.stdout.write("\n");
+
+            console.log(lazy);
         }
     }
 }
@@ -47,7 +51,7 @@ let args = {
  * @param {string} index index of args to search for
  * @param {boolean} disableException whether to disable an exception on not finding the index
  * @returns {string} the value of the index, if disableException is true, it will return undefined
- */
+*/
 function parseOpts(index, disableException) {
     let arg = argv[index];
 
@@ -68,24 +72,23 @@ async function main() {
     if (argv.length == 0 || parseOpts(0, true) == "help") {
         args.showHelp();
     
-        process.exit(1);
+        Deno.exit(1);
     } else if (parseOpts(0, true) == "install") {
         if (argv[1] == undefined) {
             console.log("No package name provided.");
             args.showHelp();
-            process.exit(1);
+            Deno.exit(1);
         } else {
-            let package = argv[1];
+            let packagewhat = argv[1];
     
-            if (package == "world") {
-                const installer = require("./makeWorld.js");
+            if (packagewhat == "world") {
                 await installer();
             }
         }
     } else {
         console.log("Unknown argument: " + argv[0]);
         args.showHelp();
-        process.exit(1);
+        Deno.exit(1);
     }
 }
 

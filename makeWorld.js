@@ -1,40 +1,31 @@
-const readline = require('readline');
-const fs = require("fs");
+import { readline } from "https://deno.land/x/readline/mod.ts";
+
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function readLine(question) {
-    return new Promise((resolve, reject) => {
-        let ans = "";
-        let rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout
-        });
+    return new Promise(async (resolve, reject) => {
+        const input = await prompt(question);
 
-        rl.question(question, (answer) => {
-            ans = answer;
-            rl.close();
-            resolve(ans);
-        })
+        resolve(input)
     })
 }
 
 async function runShell(cmd) {
-    return new Promise((resolve, reject) => {
-        let exec_arr = cmd.split(" ");
-        let exec_cmd = exec_arr[0];
-        exec_arr.shift();
-        var spawn = require('child_process').spawn,
-            ls    = spawn(exec_cmd, exec_arr, { stdio: 'inherit' });
-
-        ls.on('exit', function (code) {
-            resolve(code);
+    return new Promise(async (resolve, reject) => {
+        const p = Deno.run({
+            cmd: cmd.split(" ")
         });
+
+        const code = await p.status();
+
+
+        resolve(code);
     });
 }
 
-module.exports = async function() {
+export default async function() {
     console.log("Welcome to the hex0s installer!");
     console.log("This will install Arch Linux and the hex0s layer on your computer.");
     console.log("First, we need to partition your disk.");
@@ -45,57 +36,19 @@ module.exports = async function() {
 
     console.log("WARNING: You will have a 5 second timer before the partitioning starts.\nThis will erase ALL data!");
     console.log("To cancel, press CTRL+C!");
-    process.stdout.write("Partitioning in 5");
-    await sleep(250);
-    process.stdout.write(".");
-    await sleep(250);
-    process.stdout.write(".");
-    await sleep(250);
-    process.stdout.write(".");
-    await sleep(250);
-    process.stdout.write(".4");
-    await sleep(250);
-    process.stdout.write(".");
-    await sleep(250);
-    process.stdout.write(".");
-    await sleep(250);
-    process.stdout.write(".");
-    await sleep(250);
-    process.stdout.write(".3");
-    await sleep(250);
-    process.stdout.write(".");
-    await sleep(250);
-    process.stdout.write(".");
-    await sleep(250);
-    process.stdout.write(".");
-    await sleep(250);
-    process.stdout.write(".2");
-    await sleep(250);
-    process.stdout.write(".");
-    await sleep(250);
-    process.stdout.write(".");
-    await sleep(250);
-    process.stdout.write(".");
-    await sleep(250);
-    process.stdout.write(".1");
-    await sleep(250);
-    process.stdout.write(".");
-    await sleep(250);
-    process.stdout.write(".");
-    await sleep(250);
-    process.stdout.write(".0.\nPartitioning now!\n");
-
+    console.log("Starting timer now...");
+    await sleep(5000);
     console.log("partition: unmounting drives...");
-    let drvs = await fs.readdirSync("/dev/");
+    let drvs = await Deno.readDir("/dev");
 
     let part1 = "";
     let part2 = "";
 
-    for await (drv of drvs) {
-        if (drv.startsWith(part.replace("/dev/", "")) && drv !== part.replace("/dev/", "")) {
-            console.log("partition: attempting to unmount", drv);
-            await runShell(`umount /dev/${drv}`);
-            console.log("partition: unmounted", drv);
+    for await (let drv of drvs) {
+        if (drv.name.startsWith(part.replace("/dev/", "")) && drv.name !== part.replace("/dev/", "")) {
+            console.log("partition: attempting to unmount", drv.name);
+            await runShell(`umount /dev/${drv.name}`);
+            console.log("partition: unmounted", drv.name);
         }
     }
 
