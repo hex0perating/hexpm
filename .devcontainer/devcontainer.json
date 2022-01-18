@@ -2,10 +2,6 @@
   "name": "Node.js",
   "build": {
     "dockerfile": "Dockerfile",
-    // Update 'VARIANT' to pick a Node version: 16, 14, 12.
-    // Append -bullseye or -buster to pin to an OS version.
-    // Use -bullseye variants on local arm64/Apple Silicon.
-    "args": { "VARIANT": "16" }
   },
 
   // Set *default* container specific settings.json values on container create.
@@ -23,7 +19,7 @@
   // "forwardPorts": [],
 
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "yarn install; git submodule update --init --recursive",
+  "postCreateCommand": "git submodule update --init --recursive",
 
   // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
   "remoteUser": "dev",
