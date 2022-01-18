@@ -1,10 +1,11 @@
 {
   "name": "hexpm",
   "version": "1.0.0",
-  "description": "",
+  "description": "Package manager for the Hex Operating System",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ."
   },
   "repository": {
     "type": "git",
@@ -12,7 +13,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/hex0perating/hexpm/issues"
   },

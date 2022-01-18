@@ -106,3 +106,6 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Ignore my notes files for Arch Install, etc. - creamy-dev
+NOTES.md
