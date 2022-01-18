@@ -117,6 +117,11 @@ module.exports = async function() {
     await sleep(2500);
     console.log("partition: changes should be saved now!");
     await runShell(`mkfs.fat -F32 ${part1}`);
+    console.log("partition: type 'y' if prompted")
     await runShell(`mkfs.ext4 ${part2}`);
-    console.log("partition: initialized drive");
+    console.log("partition: initialized drive.");
+    console.log("Mounting root...");
+    await runShell(`mount ${part2} /mnt`);
+    console.log("Mounted root.\nInstalling Base System...");
+    await runShell(`pacstrap /mnt base base-devel linux linux-firmware lightdm bspwm networkmanager network-manager-applet`);
 }

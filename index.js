@@ -12,7 +12,7 @@ let args = {
         "long": "install",
         "short": "i",
         "description": "Install a package name",
-        "optDesc": "With the argument as 'world', it will attempt to install the base hex0s system."
+        "optDesc": "With the argument as 'world', it will attempt to install the base hex0s system.\nAfter the package name, if you specify 'dontask', it will not confirm your installation.\nNote that packages may still ask for prompts."
     },
     "search": {
         "long": "search",
@@ -34,7 +34,7 @@ let args = {
             process.stdout.write("  " + arg.long + " (" + arg.short + ") - " + arg.description);
     
             if (arg.optDesc) {
-                process.stdout.write("\n   " + arg.optDesc);
+                process.stdout.write("\n   " + arg.optDesc.replaceAll("\n", "\n   "));
             }
     
             process.stdout.write("\n");
