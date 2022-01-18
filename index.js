@@ -6,7 +6,7 @@ import installer from "./makeWorld.js";
 
 let argv = Deno.args;
 
-let server = "http://localhost/";
+let server = "http://hexpm.greysoh.xyz/";
 
 let pkgApi = {
     sleep: function (ms) {
