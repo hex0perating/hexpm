@@ -48,8 +48,8 @@ let args = {
     "search": {
         "long": "search",
         "short": "s",
-        "description": "Search for a package name",
-        "optDesc": "Since 'world' is NOT a package, it is blacklisted to prevent accidental use, and/or potential bugs."
+            "description": "Search for a package name",
+            "optDesc": "Since 'world' is NOT a package, it is blacklisted to prevent accidental use, and/or potential bugs."
     },
     /**
      * shows the help message
@@ -125,11 +125,16 @@ async function main() {
                 try {
                     pkgJSON = await axios.get(server + packagewhat + "/hexpkg.json");
                 } catch (e) {
-                    console.log("There was an error on the server!");
+                    console.error("There was an error on the server!");
                     Deno.exit(1);
                 } 
 
-                console.log(`${pkgJSON.data.name}\n  Package Version: ${pkgJSON.data.version}`);
+                if (pkgJSON.status == 404) {
+                    console.error("Package not found!");
+                    Deno.exit(1);
+                }
+
+                console.log(`Package name: ${pkgJSON.data.name}\n  Package Version: ${pkgJSON.data.version}\n  Package Description: ${pkgJSON.data.description}`);
 
                 let confirm = "";
 
@@ -173,7 +178,8 @@ async function main() {
             if (name0.startsWith(name1)) {
                 let msg = data.name;
                 msg += ":\n";
-                msg += "    Version: " + data.version;
+                msg += "    Version: " + data.version + "\n";
+                msg += "    Description: " + data.description;
                 
                 console.log(msg)
             }
