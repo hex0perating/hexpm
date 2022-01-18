@@ -1,9 +1,37 @@
 import axios from "https://deno.land/x/axiod/mod.ts";
 import {parse} from "https://deno.land/std@0.83.0/flags/mod.ts";
+import { readline } from "https://deno.land/x/readline/mod.ts";
 
 import installer from "./makeWorld.js";
 
 let argv = Deno.args;
+
+let server = "http://localhost/";
+
+let pkgApi = {
+    sleep: function (ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    },
+    readLine: function (question) {
+        return new Promise(async (resolve, reject) => {
+            const input = await prompt(question);
+    
+            resolve(input)
+        })
+    },
+    runShell: function(cmd) {
+        return new Promise(async (resolve, reject) => {
+            const p = Deno.run({
+                cmd: cmd.split(" ")
+            });
+    
+            const code = await p.status();
+    
+    
+            resolve(code);
+        });
+    }
+}
 
 let args = {
     "help": {
@@ -83,6 +111,71 @@ async function main() {
     
             if (packagewhat == "world") {
                 await installer();
+            } else {
+                let dontask = false;
+
+                if (argv[2] == "dontask") {
+                    dontask = true;
+                }
+
+                console.log("Getting package data...");
+
+                let pkgJSON = {};
+
+                try {
+                    pkgJSON = await axios.get(server + packagewhat + "/hexpkg.json");
+                } catch (e) {
+                    console.log("There was an error on the server!");
+                    Deno.exit(1);
+                } 
+
+                console.log(`${pkgJSON.data.name}\n  Package Version: ${pkgJSON.data.version}`);
+
+                let confirm = "";
+
+                if (!dontask) {
+                    confirm = await pkgApi.readLine("Install this package? (y/n)");
+                } else {
+                    confirm = "y";
+                }
+
+                if (confirm != "y") {
+                    console.log("Package installation cancelled.");
+                    Deno.exit(0);
+                } else {
+                    console.log("Downloading package contents...");
+                    let JS = await axios.get(server + packagewhat + "/" + pkgJSON.data.installer);
+                    console.log("Installing package...");
+
+                    try {
+                        eval(JS.data)
+                    } catch (e) {
+                        console.error("Package installation failed!");
+                        console.error("This is an error with the package itself! Trace:");
+                        console.error(e);
+                    }
+                }
+            }
+        }
+    } else if (parseOpts(0, true) == "search") {
+        let some_data = await axios.get(server + "packages.json");
+
+        for await (let data of some_data.data) {
+            let name0 = data.name;
+            name0 = name0.toLowerCase();
+            let name1 = argv[1];
+            if (name1 == undefined) {
+                console.log("Missing argument at position 1.")
+                await args.showHelp();
+                Deno.exit(1);
+            }
+            name1 = name1.toLowerCase();
+            if (name0.startsWith(name1)) {
+                let msg = data.name;
+                msg += ":\n";
+                msg += "    Version: " + data.version;
+                
+                console.log(msg)
             }
         }
     } else {

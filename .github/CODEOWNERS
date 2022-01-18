@@ -1,4 +1,7 @@
 *.js @creamy-dev
 *.json @creamy-dev
 .git* @virtualout
+.vscode @virtualout 
+LICENSE @virtualout
+.prettierrc @virtualout 
 .devcontainer @virtualout
