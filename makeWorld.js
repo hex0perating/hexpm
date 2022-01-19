@@ -1,4 +1,5 @@
 import { readline } from "https://deno.land/x/readline/mod.ts";
+import axios from "https://deno.land/x/axiod/mod.ts";
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -75,6 +76,23 @@ export default async function() {
     console.log("partition: initialized drive.");
     console.log("Mounting root...");
     await runShell(`mount ${part2} /mnt`);
-    console.log("Mounted root.\nInstalling Base System...");
-    await runShell(`pacstrap /mnt base base-devel linux linux-firmware lightdm bspwm networkmanager network-manager-applet`);
+    console.log("Mounted root.");
+
+    let username = await readLine("Please enter your new username:");
+    let password = await readLine("Please enter your new password:");
+    let hostname = await readLine("Please enter your new hostname:");
+
+    await runShell(`pacstrap /mnt base base-devel linux linux-firmware`); // networkmanager nm-applet
+    const text = await axios.get("https://raw.githubusercontent.com/hex0perating/hexpm/master/makeWorld.sh");
+    
+    let textFix = text.data.replaceAll("$_USERNAME", username);
+    textFix = textFix.replaceAll("$_PASSWORD", password);
+    textFix = textFix.replaceAll("$_HOSTNAME", hostname);
+    textFix = textFix.replaceAll("$_UEFI_PARTITION", part1);
+
+    await Deno.writeTextFile("/tmp/installer", textFix);
+
+    await Deno.writeTextFile("/tmp/installerinit",  "#!/bin/bash\nchmod +x /tmp/installer\narch-chroot /mnt /tmp/installer");
+    await runShell("chmod +x /tmp/installerinit");
+    await runShell("bash /tmp/installerinit");
 }
