@@ -14,8 +14,12 @@ echo "Creating a new hostname: $HOSTNAME"
 echo "$HOSTNAME" > /etc/hostname
 echo "Setting up sudoers..."
 echo "ALL ALL=(ALL) ALL" >> /etc/sudoers
+echo "Building locales..."
+echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+echo "LANG=en_US.UTF-8" >> /etc/locale.conf
+locale-gen
 echo "Installing other dependencies..."
-pacman -S sddm xorg kitty bspwm networkmanager network-manager-applet grub efibootmgr vim nano neofetch
+pacman -S sddm xorg kitty bspwm networkmanager network-manager-applet grub efibootmgr vim nano neofetch zsh firefox pcmanfm
 echo "Installing build dependencies for hexpm..."
 pacman -S nodejs npm git unzip zip
 echo "Downloading hexpm..."
@@ -28,6 +32,8 @@ mv /tmp/hexpm/hexpm /bin/hexpm
 chmod ugo+rx /bin/hexpm
 echo "Installing rice..."
 sudo -u "$USERNAME" hexpm install rice dontask
+echo "Installing remaining dependencies..."
+yay -S visual-studio-code-bin
 echo "Enabling services..."
 systemctl enable sddm
 systemctl enable NetworkManager
