@@ -13,9 +13,9 @@ echo "$USERNAME:$PASSWORD" | chpasswd
 echo "Creating a new hostname: $HOSTNAME"
 echo "$HOSTNAME" > /etc/hostname
 echo "Installing other dependencies..."
-pacman -S sudo sddm xorg kitty bspwm networkmanager nm-applet grub efibootmgr 
+pacman -S sudo sddm xorg kitty bspwm networkmanager network-manager-applet grub efibootmgr 
 echo "Installing build dependencies for hexpm..."
-pacman -S nodejs npm git
+pacman -S nodejs npm git unzip zip
 echo "Downloading hexpm..."
 git clone https://github.com/hex0perating/hexpm.git /tmp/hexpm 
 echo "Installing hexpm..."

@@ -93,7 +93,7 @@ export default async function() {
 
     await Deno.writeTextFile("/tmp/installer", textFix);
 
-    await Deno.writeTextFile("/tmp/installerinit",  "#!/bin/bash\nchmod +x /tmp/installer\narch-chroot /mnt /tmp/installer");
+    await Deno.writeTextFile("/tmp/installerinit",  "#!/bin/bash\nchmod +x /tmp/installer\ncp /tmp/installer /mnt/installer\narch-chroot /mnt /installer");
     await runShell("chmod +x /tmp/installerinit");
     await runShell("bash /tmp/installerinit");
 }
