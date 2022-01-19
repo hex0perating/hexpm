@@ -15,7 +15,7 @@ echo "$HOSTNAME" > /etc/hostname
 echo "Setting up sudoers..."
 echo "ALL ALL=(ALL) ALL" >> /etc/sudoers
 echo "Installing other dependencies..."
-pacman -S sddm xorg kitty bspwm networkmanager network-manager-applet grub efibootmgr 
+pacman -S sddm xorg kitty bspwm networkmanager network-manager-applet grub efibootmgr vim nano neofetch
 echo "Installing build dependencies for hexpm..."
 pacman -S nodejs npm git unzip zip
 echo "Downloading hexpm..."
