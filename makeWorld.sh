@@ -12,8 +12,10 @@ echo "Assigning password..."
 echo "$USERNAME:$PASSWORD" | chpasswd
 echo "Creating a new hostname: $HOSTNAME"
 echo "$HOSTNAME" > /etc/hostname
+echo "Setting up sudoers..."
+echo "ALL ALL=(ALL) ALL" >> /etc/sudoers
 echo "Installing other dependencies..."
-pacman -S sudo sddm xorg kitty bspwm networkmanager network-manager-applet grub efibootmgr 
+pacman -S sddm xorg kitty bspwm networkmanager network-manager-applet grub efibootmgr 
 echo "Installing build dependencies for hexpm..."
 pacman -S nodejs npm git unzip zip
 echo "Downloading hexpm..."
@@ -29,9 +31,8 @@ sudo -u "$USERNAME" hexpm install rice dontask
 echo "Enabling services..."
 systemctl enable sddm
 systemctl enable NetworkManager
-echo "Setting up sudoers..."
-echo "ALL ALL=(ALL) ALL" >> /etc/sudoers
 echo "Mounting /boot/efi..."
+mkdir /boot/efi
 mount $UEFI_PARTITION /boot/efi
 echo "Installing GRUB..."
 mkdir /boot/grub 
