@@ -32,7 +32,7 @@ export default async function() {
     console.log("First, we need to partition your disk.");
     await runShell("lsblk");
     console.log("WARNING: This will delete all data on the drive!");
-    let part = await readLine("Please enter the disk you want to install to (e.g. sda): ");
+    let part = await readLine("Please enter the disk you want to install to (e.g. sda):");
     part = `/dev/${part}`;
 
     console.log("WARNING: You will have a 5 second timer before the partitioning starts.\nThis will erase ALL data!");
@@ -56,6 +56,7 @@ export default async function() {
     console.log("partition: initializing drive...");
     if (part.startsWith("/dev/sd") || part.startsWith("/dev/hd") || part.startsWith("/dev/vd")) {
         part1 = part + 1;
+        part2 = part + 2;
     } else if (part.startsWith("/dev/mmcblk")) {
         part1 = part + "p1";
         part2 = part + "p2";
