@@ -8,6 +8,11 @@ let argv = Deno.args;
 
 let server = "http://hexpm.greysoh.xyz/";
 
+if (Deno.env.get("HEXPM_DEBUG") !== undefined) {
+    console.log("HEXPM_DEBUG is set! Setting server to localhost...");
+    server = "http://localhost/";
+}
+
 let pkgApi = {
     sleep: function (ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -26,7 +31,6 @@ let pkgApi = {
             });
     
             const code = await p.status();
-    
     
             resolve(code);
         });
