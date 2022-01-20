@@ -6,7 +6,7 @@ import installer from "./makeWorld.js";
 
 let argv = Deno.args;
 
-let server = "http://hexpm.greysoh.xyz/";
+let server = "https://hexpm.greysoh.xyz/";
 
 if (Deno.env.get("HEXPM_DEBUG") !== undefined) {
     console.log("HEXPM_DEBUG is set! Setting server to localhost...");
