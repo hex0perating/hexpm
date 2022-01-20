@@ -1,4 +1,5 @@
 import { readline } from "https://deno.land/x/readline/mod.ts";
+import axios from "https://deno.land/x/axiod/mod.ts";
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -31,7 +32,7 @@ export default async function() {
     console.log("First, we need to partition your disk.");
     await runShell("lsblk");
     console.log("WARNING: This will delete all data on the drive!");
-    let part = await readLine("Please enter the disk you want to install to (e.g. sda): ");
+    let part = await readLine("Please enter the disk you want to install to (e.g. sda):");
     part = `/dev/${part}`;
 
     console.log("WARNING: You will have a 5 second timer before the partitioning starts.\nThis will erase ALL data!");
@@ -55,6 +56,7 @@ export default async function() {
     console.log("partition: initializing drive...");
     if (part.startsWith("/dev/sd") || part.startsWith("/dev/hd") || part.startsWith("/dev/vd")) {
         part1 = part + 1;
+        part2 = part + 2;
     } else if (part.startsWith("/dev/mmcblk")) {
         part1 = part + "p1";
         part2 = part + "p2";
@@ -75,6 +77,23 @@ export default async function() {
     console.log("partition: initialized drive.");
     console.log("Mounting root...");
     await runShell(`mount ${part2} /mnt`);
-    console.log("Mounted root.\nInstalling Base System...");
-    await runShell(`pacstrap /mnt base base-devel linux linux-firmware lightdm bspwm networkmanager network-manager-applet`);
+    console.log("Mounted root.");
+
+    let username = await readLine("Please enter your new username:");
+    let password = await readLine("Please enter your new password:");
+    let hostname = await readLine("Please enter your new hostname:");
+
+    await runShell(`pacstrap /mnt base base-devel linux linux-firmware`); // networkmanager nm-applet
+    const text = await axios.get("https://raw.githubusercontent.com/hex0perating/hexpm/master/makeWorld.sh");
+    
+    let textFix = text.data.replaceAll("$_USERNAME", username);
+    textFix = textFix.replaceAll("$_PASSWORD", password);
+    textFix = textFix.replaceAll("$_HOSTNAME", hostname);
+    textFix = textFix.replaceAll("$_UEFI_PARTITION", part1);
+
+    await Deno.writeTextFile("/tmp/installer", textFix);
+
+    await Deno.writeTextFile("/tmp/installerinit",  "#!/bin/bash\nchmod +x /tmp/installer\ncp /tmp/installer /mnt/installer\narch-chroot /mnt /installer");
+    await runShell("chmod +x /tmp/installerinit");
+    await runShell("bash /tmp/installerinit");
 }

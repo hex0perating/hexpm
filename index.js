@@ -116,12 +116,6 @@ async function main() {
             if (packagewhat == "world") {
                 await installer();
             } else {
-                let dontask = false;
-
-                if (argv[2] == "dontask") {
-                    dontask = true;
-                }
-
                 console.log("Getting package data...");
 
                 let pkgJSON = {};
@@ -142,7 +136,7 @@ async function main() {
 
                 let confirm = "";
 
-                if (!dontask) {
+                if (argv[2] !== "dontask") {
                     confirm = await pkgApi.readLine("Install this package? (y/n)");
                 } else {
                     confirm = "y";
