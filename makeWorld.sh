@@ -19,9 +19,9 @@ echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
 echo "LANG=en_US.UTF-8" >> /etc/locale.conf
 locale-gen
 echo "Installing other dependencies..."
-pacman -S sddm xorg kitty bspwm networkmanager network-manager-applet grub efibootmgr vim nano neofetch zsh firefox pcmanfm
+pacman -S sddm xorg kitty bspwm networkmanager network-manager-applet grub efibootmgr vim nano neofetch zsh firefox pcmanfm --noconfirm
 echo "Installing build dependencies for hexpm..."
-pacman -S nodejs npm git unzip zip
+pacman -S nodejs npm git unzip zip --noconfirm
 echo "Downloading hexpm..."
 git clone https://github.com/hex0perating/hexpm.git /tmp/hexpm 
 echo "Installing hexpm..."
@@ -33,7 +33,7 @@ chmod ugo+rx /bin/hexpm
 echo "Installing rice..."
 sudo -u "$USERNAME" hexpm install rice dontask
 echo "Installing remaining dependencies..."
-sudo -u "$USERNAME" yay -S visual-studio-code-bin gnome-keyring polkit-gnome
+sudo -u "$USERNAME" yay -S visual-studio-code-bin gnome-keyring polkit-gnome --noconfirm
 echo "Enabling services..."
 systemctl enable sddm
 systemctl enable NetworkManager
