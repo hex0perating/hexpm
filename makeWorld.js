@@ -21,7 +21,6 @@ async function runShell(cmd) {
 
         const code = await p.status();
 
-
         resolve(code);
     });
 }

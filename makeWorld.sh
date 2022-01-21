@@ -33,7 +33,7 @@ chmod ugo+rx /bin/hexpm
 echo "Installing rice..."
 sudo -u "$USERNAME" hexpm install rice dontask
 echo "Installing remaining dependencies..."
-yay -S visual-studio-code-bin
+sudo -u "$USERNAME" yay -S visual-studio-code-bin gnome-keyring polkit-gnome
 echo "Enabling services..."
 systemctl enable sddm
 systemctl enable NetworkManager
