@@ -19,7 +19,7 @@ echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
 echo "LANG=en_US.UTF-8" >> /etc/locale.conf
 locale-gen
 echo "Installing other dependencies..."
-pacman -S sddm xorg kitty bspwm networkmanager network-manager-applet grub efibootmgr vim nano neofetch zsh firefox pcmanfm --noconfirm
+pacman -S sddm xorg kitty bspwm networkmanager network-manager-applet grub efibootmgr vim nano neofetch zsh firefox pcmanfm base-devel --noconfirm
 echo "Installing build dependencies for hexpm..."
 pacman -S nodejs npm git unzip zip --noconfirm
 echo "Downloading hexpm..."
