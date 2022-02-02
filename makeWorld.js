@@ -82,7 +82,7 @@ export default async function() {
     let password = await readLine("Please enter your new password:");
     let hostname = await readLine("Please enter your new hostname:");
 
-    await runShell(`pacstrap /mnt base base-devel linux linux-firmware`); // networkmanager nm-applet
+    await runShell(`pacstrap /mnt base linux linux-firmware`); // networkmanager nm-applet
     const text = await axios.get("https://raw.githubusercontent.com/hex0perating/hexpm/master/makeWorld.sh");
     
     let textFix = text.data.replaceAll("$_USERNAME", username);
