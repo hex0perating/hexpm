@@ -32,6 +32,71 @@ let pkgApi = {
     
             resolve(code);
         });
+    },
+    installAUR: async function(origCMD) {
+        if (typeof origCMD == "object") {
+            throw("pkgApi.installAUR was passed an object, not a string.");
+        } 
+        let cmd = origCMD.split(" ");
+        let SyuCheck = cmd[0];
+
+        let Packages = cmd;
+        Packages.splice(0, 1);
+        
+        if (SyuCheck == undefined) {
+            console.error("You need to specify arguments!\nExample: hexpm aur -Syu discord");
+            Deno.exit(1);
+        }
+
+        let pacmanPackages = [];
+        let aurPackages = [];
+        
+        console.log(":: Checking status of AUR packages...");
+        for (var i = 0; i < Packages.length; i++) {
+            const cmd = Deno.run({
+                cmd: `git ls-remote https://aur.archlinux.org/${Packages[i]}.git`.split(" "), 
+                stdout: "piped",
+                stderr: "piped"
+            });
+              
+            const output = await cmd.output();
+            const outStr = new TextDecoder().decode(output);
+            
+            if (outStr == "") {
+                pacmanPackages.push(Packages[i]);
+            } else {
+                aurPackages.push(Packages[i]);
+            }
+        }
+
+        if (SyuCheck.startsWith("-Sy")) {
+            SyuCheck = SyuCheck.replaceAll("y", "");
+            await pkgApi.runShell("sudo pacman -Sy");
+        }
+
+        if (pacmanPackages.length !== 0) {
+            let cmd = `sudo pacman ${SyuCheck} ${pacmanPackages.join(" ")}`;
+            await pkgApi.runShell(cmd);
+        }
+
+        if (aurPackages.length !== 0) {
+            Deno.addSignalListener("SIGINT", async(_) => {
+                await pkgApi.sleep(600);
+                Deno.exit(1);
+            });
+
+            for (var i = 0; i < aurPackages.length; i++) {
+                let pkg = aurPackages[i];
+
+                let cmd = `#!/bin/bash\nrm -rf /tmp/pkgbuild\ngit clone https://aur.archlinux.org/${pkg}.git /tmp/pkgbuild\ncd /tmp/pkgbuild\nmakepkg -si`;
+                
+                await pkgApi.runShell("rm -rf /tmp/installAUR");
+                await Deno.writeTextFile("/tmp/installAUR", cmd);
+                
+                await pkgApi.runShell("chmod +x /tmp/installAUR");
+                await pkgApi.runShell("bash /tmp/installAUR");
+            }
+        }
     }
 }
 
@@ -186,65 +251,15 @@ async function main() {
             }
         }
     } else if (parseOpts(0, true) == "aur") {
-        let SyuCheck = argv[1];
-
-        let Packages = argv.join("femboys are hot").split("femboys are hot");
-        Packages.splice(0, 2);
-        
-        if (SyuCheck == undefined) {
-            console.error("You need to specify arguments!\nExample: hexpm aur -Syu discord");
-            Deno.exit(1);
+        let cmd = [];
+        // this is the only thing that works. WTF?
+        for (var i = 0; i < argv.length; i++) {
+            if (i !== 0) cmd.push(argv[i]);
         }
 
-        let pacmanPackages = [];
-        let aurPackages = [];
-        
-        console.log(":: Checking status of AUR packages...");
-        for (var i = 0; i < Packages.length; i++) {
-            const cmd = Deno.run({
-                cmd: `git ls-remote https://aur.archlinux.org/${Packages[i]}.git`.split(" "), 
-                stdout: "piped",
-                stderr: "piped"
-            });
-              
-            const output = await cmd.output();
-            const outStr = new TextDecoder().decode(output);
-            
-            if (outStr == "") {
-                pacmanPackages.push(Packages[i]);
-            } else {
-                aurPackages.push(Packages[i]);
-            }
-        }
+        cmd = cmd.join(" ");
 
-        if (SyuCheck.startsWith("-Sy")) {
-            SyuCheck = SyuCheck.replaceAll("y", "");
-            await pkgApi.runShell("sudo pacman -Sy");
-        }
-
-        if (pacmanPackages.length !== 0) {
-            let cmd = `sudo pacman ${SyuCheck} ${pacmanPackages.join(" ")}`;
-            await pkgApi.runShell(cmd);
-        }
-
-        if (aurPackages.length !== 0) {
-            Deno.addSignalListener("SIGINT", async(_) => {
-                await pkgApi.sleep(600);
-                Deno.exit(1);
-            });
-
-            for (var i = 0; i < aurPackages.length; i++) {
-                let pkg = aurPackages[i];
-
-                let cmd = `#!/bin/bash\nrm -rf /tmp/pkgbuild\ngit clone https://aur.archlinux.org/${pkg}.git /tmp/pkgbuild\ncd /tmp/pkgbuild\nmakepkg -si`;
-                
-                await pkgApi.runShell("rm -rf /tmp/installAUR");
-                await Deno.writeTextFile("/tmp/installAUR", cmd);
-                
-                await pkgApi.runShell("chmod +x /tmp/installAUR");
-                await pkgApi.runShell("bash /tmp/installAUR");
-            }
-        }
+        await pkgApi.installAUR(cmd);
     } else {
         console.log("Unknown argument: " + argv[0]);
         args.showHelp();
