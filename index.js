@@ -1,6 +1,4 @@
 import axios from "https://deno.land/x/axiod/mod.ts";
-import {parse} from "https://deno.land/std@0.83.0/flags/mod.ts";
-import { readline } from "https://deno.land/x/readline/mod.ts";
 
 import installer from "./makeWorld.js";
 
@@ -52,8 +50,13 @@ let args = {
     "search": {
         "long": "search",
         "short": "s",
-            "description": "Search for a package name",
-            "optDesc": "Since 'world' is NOT a package, it is blacklisted to prevent accidental use, and/or potential bugs."
+        "description": "Search for a package name",
+        "optDesc": "'world' is not a real package."
+    },
+    "aur": {
+        "long": "aur",
+        "short": "a",
+        "description": "Installs packages from the AUR."
     },
     /**
      * shows the help message
@@ -180,6 +183,66 @@ async function main() {
                 msg += "    Description: " + data.description;
                 
                 console.log(msg)
+            }
+        }
+    } else if (parseOpts(0, true) == "aur") {
+        let SyuCheck = argv[1];
+
+        let Packages = argv.join("femboys are hot").split("femboys are hot");
+        Packages.splice(0, 2);
+        
+        if (SyuCheck == undefined) {
+            console.error("You need to specify arguments!\nExample: hexpm aur -Syu discord");
+            Deno.exit(1);
+        }
+
+        let pacmanPackages = [];
+        let aurPackages = [];
+        
+        console.log(":: Checking status of AUR packages...");
+        for (var i = 0; i < Packages.length; i++) {
+            const cmd = Deno.run({
+                cmd: `git ls-remote https://aur.archlinux.org/${Packages[i]}.git`.split(" "), 
+                stdout: "piped",
+                stderr: "piped"
+            });
+              
+            const output = await cmd.output();
+            const outStr = new TextDecoder().decode(output);
+            
+            if (outStr == "") {
+                pacmanPackages.push(Packages[i]);
+            } else {
+                aurPackages.push(Packages[i]);
+            }
+        }
+
+        if (SyuCheck.startsWith("-Sy")) {
+            SyuCheck = SyuCheck.replaceAll("y", "");
+            await pkgApi.runShell("sudo pacman -Sy");
+        }
+
+        if (pacmanPackages.length !== 0) {
+            let cmd = `sudo pacman ${SyuCheck} ${pacmanPackages.join(" ")}`;
+            await pkgApi.runShell(cmd);
+        }
+
+        if (aurPackages.length !== 0) {
+            Deno.addSignalListener("SIGINT", async(_) => {
+                await pkgApi.sleep(600);
+                Deno.exit(1);
+            });
+
+            for (var i = 0; i < aurPackages.length; i++) {
+                let pkg = aurPackages[i];
+
+                let cmd = `#!/bin/bash\nrm -rf /tmp/pkgbuild\ngit clone https://aur.archlinux.org/${pkg}.git /tmp/pkgbuild\ncd /tmp/pkgbuild\nmakepkg -si`;
+                
+                await pkgApi.runShell("rm -rf /tmp/installAUR");
+                await Deno.writeTextFile("/tmp/installAUR", cmd);
+                
+                await pkgApi.runShell("chmod +x /tmp/installAUR");
+                await pkgApi.runShell("bash /tmp/installAUR");
             }
         }
     } else {

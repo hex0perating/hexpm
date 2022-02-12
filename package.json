@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "install-deno": "echo Warning: This is only for Linux users! && curl -fsSL https://deno.land/install.sh | sh && echo ",
-    "compile": "~/.deno/bin/deno compile --allow-env --allow-net --allow-run --allow-read --allow-write index.js",
-    "start": "~/.deno/bin/deno run --allow-env --allow-net --allow-run --allow-read --allow-write index.js"
+    "compile": "~/.deno/bin/deno compile --unstable --allow-env --allow-net --allow-run --allow-read --allow-write index.js",
+    "start": "~/.deno/bin/deno run --unstable --allow-env --allow-net --allow-run --allow-read --allow-write index.js",
+    "install": "npm run compile; sudo mv hexpm /bin/hexpm; sudo chmod ugo+rx /bin/hexpm"
   },
   "repository": {
     "type": "git",
