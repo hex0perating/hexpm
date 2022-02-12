@@ -12,6 +12,7 @@ if (Deno.env.get("HEXPM_DEBUG") !== undefined) {
 }
 
 let pkgApi = {
+    pkgApiVer: 1,
     sleep: function (ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     },
@@ -129,6 +130,11 @@ let args = {
         "long": "aur",
         "short": "a",
         "description": "Installs packages from the AUR."
+    },
+    "update": {
+        "long": "update",
+        "short": "u",
+        "description": "Updates the package manager to the latest git version."
     },
     /**
      * shows the help message
@@ -267,6 +273,15 @@ async function main() {
         cmd = cmd.join(" ");
 
         await pkgApi.installAUR(cmd);
+    } else if (parseOpts(0, true) == "update") {
+        console.log("Updating package manager...");
+        
+        await pkgApi.installAUR("-Sy nodejs npm");
+
+        await Deno.writeTextFile("/tmp/updatepm", "#!/bin/bash\nrm -rf /tmp/hexpm\ngit clone https://github.com/hex0perating/hexpm.git /tmp/hexpm\ncd /tmp/hexpm\nnpm run install-deno\nnpm run install");
+        await pkgApi.runShell("chmod +x /tmp/updatepm");
+        await pkgApi.runShell("bash /tmp/updatepm");
+        console.log("Done updating the package manager!");
     } else {
         console.log("Unknown argument: " + argv[0]);
         args.showHelp();
