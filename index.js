@@ -37,6 +37,7 @@ let pkgApi = {
         if (typeof origCMD == "object") {
             throw("pkgApi.installAUR was passed an object, not a string.");
         } 
+        
         let cmd = origCMD.split(" ");
         let SyuCheck = cmd[0];
 
@@ -79,14 +80,20 @@ let pkgApi = {
             await pkgApi.runShell(cmd);
         }
 
+        if (pacmanPackages.length == 0 && SyuCheck == "-Su") {
+            console.log(":: Updating system...");
+            await pkgApi.runShell("sudo pacman -Su");
+        }
+
         if (aurPackages.length !== 0) {
             Deno.addSignalListener("SIGINT", async(_) => {
-                await pkgApi.sleep(600);
+                await pkgApi.sleep(100);
                 Deno.exit(1);
             });
 
             for (var i = 0; i < aurPackages.length; i++) {
                 let pkg = aurPackages[i];
+                console.log(":: Installing '" + pkg + "'...")
 
                 let cmd = `#!/bin/bash\nrm -rf /tmp/pkgbuild\ngit clone https://aur.archlinux.org/${pkg}.git /tmp/pkgbuild\ncd /tmp/pkgbuild\nmakepkg -si`;
                 
