@@ -1,289 +1,306 @@
-import axios from "https://deno.land/x/axiod/mod.ts";
+import axios from 'https://deno.land/x/axiod/mod.ts';
 
-import installer from "./makeWorld.js";
+import installer from './makeWorld.js';
 
 let argv = Deno.args;
 
-let server = "https://hexpm.glitch.me/";
+let server = 'https://hexpm.glitch.me/';
 
-if (Deno.env.get("HEXPM_DEBUG") !== undefined) {
-    console.log("HEXPM_DEBUG is set! Setting server to localhost...");
-    server = "http://localhost/";
+if (Deno.env.get('HEXPM_DEBUG') !== undefined) {
+    console.log('HEXPM_DEBUG is set! Setting server to localhost...');
+    server = 'http://localhost/';
 }
 
 let pkgApi = {
     pkgApiVer: 1,
     sleep: function (ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
     },
     readLine: function (question) {
         return new Promise(async (resolve, reject) => {
             const input = await prompt(question);
-    
-            resolve(input)
-        })
+
+            resolve(input);
+        });
     },
-    runShell: function(cmd) {
+    runShell: function (cmd) {
         return new Promise(async (resolve, reject) => {
             const p = Deno.run({
-                cmd: cmd.split(" ")
+                cmd: cmd.split(' '),
             });
-    
+
             const code = await p.status();
-    
+
             resolve(code);
         });
     },
-    installAUR: async function(origCMD) {
-        if (typeof origCMD == "object") {
-            throw("pkgApi.installAUR was passed an object, not a string.");
-        } 
-        
-        let cmd = origCMD.split(" ");
+    installAUR: async function (origCMD) {
+        if (typeof origCMD == 'object') {
+            throw 'pkgApi.installAUR was passed an object, not a string.';
+        }
+
+        let cmd = origCMD.split(' ');
         let SyuCheck = cmd[0];
 
         let Packages = cmd;
         Packages.splice(0, 1);
-        
+
         if (SyuCheck == undefined) {
-            console.error("You need to specify arguments!\nExample: hexpm aur -Syu discord");
+            console.error(
+                'You need to specify arguments!\nExample: hexpm aur -Syu discord'
+            );
             Deno.exit(1);
         }
 
         let pacmanPackages = [];
         let aurPackages = [];
-        
-        console.log(":: Checking status of AUR packages...");
+
+        console.log(':: Checking status of AUR packages...');
         for (var i = 0; i < Packages.length; i++) {
             const cmd = Deno.run({
-                cmd: `git ls-remote https://aur.archlinux.org/${Packages[i]}.git`.split(" "), 
-                stdout: "piped",
-                stderr: "piped"
+                cmd: `git ls-remote https://aur.archlinux.org/${Packages[i]}.git`.split(
+                    ' '
+                ),
+                stdout: 'piped',
+                stderr: 'piped',
             });
-              
+
             const output = await cmd.output();
             const outStr = new TextDecoder().decode(output);
-            
-            if (outStr == "") {
+
+            if (outStr == '') {
                 pacmanPackages.push(Packages[i]);
             } else {
                 aurPackages.push(Packages[i]);
             }
         }
 
-        if (SyuCheck.startsWith("-Sy")) {
-            SyuCheck = SyuCheck.replaceAll("y", "");
-            await pkgApi.runShell("sudo pacman -Sy");
+        if (SyuCheck.startsWith('-Sy')) {
+            SyuCheck = SyuCheck.replaceAll('y', '');
+            await pkgApi.runShell('sudo pacman -Sy');
         }
 
         if (pacmanPackages.length !== 0) {
-            let cmd = `sudo pacman ${SyuCheck} ${pacmanPackages.join(" ")}`;
+            let cmd = `sudo pacman ${SyuCheck} ${pacmanPackages.join(' ')}`;
             await pkgApi.runShell(cmd);
         }
 
-        if (pacmanPackages.length == 0 && SyuCheck == "-Su") {
-            console.log(":: Updating system...");
-            await pkgApi.runShell("sudo pacman -Su");
+        if (pacmanPackages.length == 0 && SyuCheck == '-Su') {
+            console.log(':: Updating system...');
+            await pkgApi.runShell('sudo pacman -Su');
         }
 
         if (aurPackages.length !== 0) {
-            Deno.addSignalListener("SIGINT", async(_) => {
+            Deno.addSignalListener('SIGINT', async (_) => {
                 await pkgApi.sleep(100);
                 Deno.exit(1);
             });
 
             for (var i = 0; i < aurPackages.length; i++) {
                 let pkg = aurPackages[i];
-                console.log(":: Installing '" + pkg + "'...")
+                console.log(":: Installing '" + pkg + "'...");
 
                 let cmd = `#!/bin/bash\nrm -rf /tmp/pkgbuild\ngit clone https://aur.archlinux.org/${pkg}.git /tmp/pkgbuild\ncd /tmp/pkgbuild\nmakepkg -si`;
-                
-                await pkgApi.runShell("rm -rf /tmp/installAUR");
-                await Deno.writeTextFile("/tmp/installAUR", cmd);
-                
-                await pkgApi.runShell("chmod +x /tmp/installAUR");
-                await pkgApi.runShell("bash /tmp/installAUR");
+
+                await pkgApi.runShell('rm -rf /tmp/installAUR');
+                await Deno.writeTextFile('/tmp/installAUR', cmd);
+
+                await pkgApi.runShell('chmod +x /tmp/installAUR');
+                await pkgApi.runShell('bash /tmp/installAUR');
             }
         }
-    }
-}
+    },
+};
 
 let args = {
-    "help": {
-        "long": "help",
-        "short": "h",
-        "description": "Show this help message"
+    help: {
+        long: 'help',
+        short: 'h',
+        description: 'Show this help message',
     },
-    "install": {
-        "long": "install",
-        "short": "i",
-        "description": "Install a package name",
-        "optDesc": "With the argument as 'world', it will attempt to install the base hex0s system.\nAfter the package name, if you specify 'dontask', it will not confirm your installation.\nNote that packages may still ask for prompts."
+    install: {
+        long: 'install',
+        short: 'i',
+        description: 'Install a package name',
+        optDesc:
+            "With the argument as 'world', it will attempt to install the base hex0s system.\nAfter the package name, if you specify 'dontask', it will not confirm your installation.\nNote that packages may still ask for prompts.",
     },
-    "search": {
-        "long": "search",
-        "short": "s",
-        "description": "Search for a package name",
-        "optDesc": "'world' is not a real package."
+    search: {
+        long: 'search',
+        short: 's',
+        description: 'Search for a package name',
+        optDesc: "'world' is not a real package.",
     },
-    "aur": {
-        "long": "aur",
-        "short": "a",
-        "description": "Installs packages from the AUR."
+    aur: {
+        long: 'aur',
+        short: 'a',
+        description: 'Installs packages from the AUR.',
     },
-    "update": {
-        "long": "update",
-        "short": "u",
-        "description": "Updates the package manager to the latest git version."
+    update: {
+        long: 'update',
+        short: 'u',
+        description: 'Updates the package manager to the latest git version.',
     },
     /**
      * shows the help message
      */
-    "showHelp": async function() {
-        console.log("Usage: ");
+    showHelp: async function () {
+        console.log('Usage: ');
 
         for (let arg_name in args) {
-            let lazy = "";
+            let lazy = '';
             let arg = args[arg_name];
-    
-            if (typeof arg == "function") break;
-    
-            lazy += "  " + arg.long + " (" + arg.short + ") - " + arg.description;
-    
+
+            if (typeof arg == 'function') break;
+
+            lazy +=
+                '  ' + arg.long + ' (' + arg.short + ') - ' + arg.description;
+
             if (arg.optDesc) {
-                lazy += "\n   " + arg.optDesc.replaceAll("\n", "\n   ");
+                lazy += '\n   ' + arg.optDesc.replaceAll('\n', '\n   ');
             }
 
             console.log(lazy);
         }
-    }
-}
+    },
+};
 
 /**
  * gets options from the command line
  * @param {string} index index of args to search for
  * @param {boolean} disableException whether to disable an exception on not finding the index
  * @returns {string} the value of the index, if disableException is true, it will return undefined
-*/
+ */
 function parseOpts(index, disableException) {
     let arg = argv[index];
 
-    if (arg == undefined && !disableException) throw new Error("No argument found at index " + index);
+    if (arg == undefined && !disableException)
+        throw new Error('No argument found at index ' + index);
 
     for (let arg_name in args) {
         let arg = args[arg_name];
 
-        if (typeof arg == "function") break;
+        if (typeof arg == 'function') break;
 
         if (arg.long == argv[index] || arg.short == argv[index]) {
-            return(arg.long)
+            return arg.long;
         }
     }
 }
 
 async function main() {
-    if (argv.length == 0 || parseOpts(0, true) == "help") {
+    if (argv.length == 0 || parseOpts(0, true) == 'help') {
         args.showHelp();
-    
+
         Deno.exit(1);
-    } else if (parseOpts(0, true) == "install") {
+    } else if (parseOpts(0, true) == 'install') {
         if (argv[1] == undefined) {
-            console.log("No package name provided.");
+            console.log('No package name provided.');
             args.showHelp();
             Deno.exit(1);
         } else {
             let packagewhat = argv[1];
-    
-            if (packagewhat == "world") {
+
+            if (packagewhat == 'world') {
                 await installer();
             } else {
-                console.log("Getting package data...");
+                console.log('Getting package data...');
 
                 let pkgJSON = {};
 
                 try {
-                    pkgJSON = await axios.get(server + packagewhat + "/hexpkg.json");
+                    pkgJSON = await axios.get(
+                        server + packagewhat + '/hexpkg.json'
+                    );
                 } catch (e) {
-                    console.error("There was an error on the server!");
+                    console.error('There was an error on the server!');
                     Deno.exit(1);
-                } 
+                }
 
                 if (pkgJSON.status == 404) {
-                    console.error("Package not found!");
+                    console.error('Package not found!');
                     Deno.exit(1);
                 }
 
-                console.log(`Package name: ${pkgJSON.data.name}\n  Package Version: ${pkgJSON.data.version}\n  Package Description: ${pkgJSON.data.description}`);
+                console.log(
+                    `Package name: ${pkgJSON.data.name}\n  Package Version: ${pkgJSON.data.version}\n  Package Description: ${pkgJSON.data.description}`
+                );
 
-                let confirm = "";
+                let confirm = '';
 
-                if (argv[2] !== "dontask") {
-                    confirm = await pkgApi.readLine("Install this package? (y/n)");
+                if (argv[2] !== 'dontask') {
+                    confirm = await pkgApi.readLine(
+                        'Install this package? (y/n)'
+                    );
                 } else {
-                    confirm = "y";
+                    confirm = 'y';
                 }
 
-                if (confirm != "y") {
-                    console.log("Package installation cancelled.");
+                if (confirm != 'y') {
+                    console.log('Package installation cancelled.');
                     Deno.exit(0);
                 } else {
-                    console.log("Downloading package contents...");
-                    let JS = await axios.get(server + packagewhat + "/" + pkgJSON.data.installer);
-                    console.log("Installing package...");
+                    console.log('Downloading package contents...');
+                    let JS = await axios.get(
+                        server + packagewhat + '/' + pkgJSON.data.installer
+                    );
+                    console.log('Installing package...');
 
                     try {
-                        eval(JS.data)
+                        eval(JS.data);
                     } catch (e) {
-                        console.error("Package installation failed!");
-                        console.error("This is an error with the package itself! Trace:");
+                        console.error('Package installation failed!');
+                        console.error(
+                            'This is an error with the package itself! Trace:'
+                        );
                         console.error(e);
                     }
                 }
             }
         }
-    } else if (parseOpts(0, true) == "search") {
-        let some_data = await axios.get(server + "packages.json");
+    } else if (parseOpts(0, true) == 'search') {
+        let some_data = await axios.get(server + 'packages.json');
 
         for await (let data of some_data.data) {
             let name0 = data.name;
             name0 = name0.toLowerCase();
             let name1 = argv[1];
             if (name1 == undefined) {
-                console.log("Missing argument at position 1.")
+                console.log('Missing argument at position 1.');
                 await args.showHelp();
                 Deno.exit(1);
             }
             name1 = name1.toLowerCase();
             if (name0.startsWith(name1)) {
                 let msg = data.name;
-                msg += ":\n";
-                msg += "    Version: " + data.version + "\n";
-                msg += "    Description: " + data.description;
-                
-                console.log(msg)
+                msg += ':\n';
+                msg += '    Version: ' + data.version + '\n';
+                msg += '    Description: ' + data.description;
+
+                console.log(msg);
             }
         }
-    } else if (parseOpts(0, true) == "aur") {
+    } else if (parseOpts(0, true) == 'aur') {
         let cmd = [];
-        // this is the only thing that works. WTF?
-        for (var i = 0; i < argv.length; i++) {
-            if (i !== 0) cmd.push(argv[i]);
-        }
+        argv.map((i) => cmd.push(i));
 
-        cmd = cmd.join(" ");
+        cmd = cmd.join(' ');
 
         await pkgApi.installAUR(cmd);
-    } else if (parseOpts(0, true) == "update") {
-        console.log("Updating package manager...");
-        
-        await pkgApi.installAUR("-Sy nodejs npm");
+    } else if (parseOpts(0, true) == 'update') {
+        console.log('Updating package manager...');
 
-        await Deno.writeTextFile("/tmp/updatepm", "#!/bin/bash\nrm -rf /tmp/hexpm\ngit clone https://github.com/hex0perating/hexpm.git /tmp/hexpm\ncd /tmp/hexpm\nnpm run install-deno\nnpm run install");
-        await pkgApi.runShell("chmod +x /tmp/updatepm");
-        await pkgApi.runShell("bash /tmp/updatepm");
-        console.log("Done updating the package manager!");
+        await pkgApi.installAUR('-Sy nodejs npm');
+
+        await Deno.writeTextFile(
+            '/tmp/updatepm',
+            '#!/bin/bash\nrm -rf /tmp/hexpm\ngit clone https://github.com/hex0perating/hexpm.git /tmp/hexpm\ncd /tmp/hexpm\nnpm run install-deno\nnpm run install'
+        );
+        await pkgApi.runShell('chmod +x /tmp/updatepm');
+        await pkgApi.runShell('bash /tmp/updatepm');
+        console.log('Done updating the package manager!');
     } else {
-        console.log("Unknown argument: " + argv[0]);
+        console.log('Unknown argument: ' + argv[0]);
         args.showHelp();
         Deno.exit(1);
     }
