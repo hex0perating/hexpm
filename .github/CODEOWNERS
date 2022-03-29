@@ -1,7 +1,7 @@
-*.js @creamy-dev
-*.json @creamy-dev
-.git* @virtualout
-.vscode @virtualout 
-LICENSE @virtualout
-.prettierrc @virtualout 
-.devcontainer @virtualout
+*.js @greysoh
+*.json @greysoh
+.git* @ashxi
+.vscode @ashxi
+LICENSE @ashxi
+.prettierrc @ashxi
+.devcontainer @ashxi
